@@ -234,6 +234,8 @@ def _load_native():
         _setup_prototype(h, 'set_tracking', None, state_t, ctypes.c_bool, ctypes.c_bool)
         _setup_prototype(h, 'executed_pages', ctypes.c_uint64, state_t)
         _setup_prototype(h, 'in_cache', ctypes.c_bool, state_t, ctypes.c_uint64)
+        _setup_prototype(h, 'set_vex_to_unicorn_reg_mappings', None, state_t, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64), ctypes.c_uint64)
+        _setup_prototype(h, 'set_artificial_registers', None, state_t, ctypes.POINTER(ctypes.c_uint64), ctypes.c_uint64)
 
         l.info('native plugin is enabled')
 
