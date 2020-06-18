@@ -991,17 +991,23 @@ public:
 		return -1;
 	}
 
-	void handle_write(address_t address, int size)
+	void handle_write(address_t address, int size, bool is_interrupt)
 	{
 		taint_t *bitmap = page_lookup(address);
 		int start = address & 0xFFF;
 		int end = (address + size - 1) & 0xFFF;
 		int clean;
-		address_t instr_addr = get_instruction_pointer();
-		bool is_dst_symbolic = mem_writes_taint_map.at(instr_addr);
-
-		if (is_dst_symbolic) {
-			save_dependencies(instr_addr);
+		bool is_dst_symbolic;
+		if (is_interrupt) {
+			// This is a workaround for CGC transmit syscall which never passes symbolic data
+			is_dst_symbolic = false;
+		}
+		else {
+			address_t instr_addr = get_instruction_pointer();
+			is_dst_symbolic = mem_writes_taint_map.at(instr_addr);
+			if (is_dst_symbolic) {
+				save_dependencies(instr_addr);
+			}
 		}
 
 		if (end >= start) {
@@ -1896,7 +1902,7 @@ static void hook_mem_write(uc_engine *uc, uc_mem_type type, uint64_t address, in
 		state->ignore_next_block = true;
 	}
 
-	state->handle_write(address, size);
+	state->handle_write(address, size, false);
 }
 
 static void hook_block(uc_engine *uc, uint64_t address, int32_t size, void *user_data) {
@@ -1950,6 +1956,7 @@ static void hook_intr(uc_engine *uc, uint32_t intno, void *user_data) {
 				uc_reg_read(uc, UC_X86_REG_ESI, &tx_bytes);
 
 				// ensure that the memory we're sending is not tainted
+				// TODO: Can transmit also work with symbolic bytes?
 				void *dup_buf = malloc(count);
 				uint32_t tmp_tx;
 				if (uc_mem_read(uc, buf, dup_buf, count) != UC_ERR_OK)
@@ -1983,7 +1990,7 @@ static void hook_intr(uc_engine *uc, uint32_t intno, void *user_data) {
 				}
 
 				uc_err err = uc_mem_write(uc, tx_bytes, &count, 4);
-				if (tx_bytes != 0) state->handle_write(tx_bytes, 4);
+				if (tx_bytes != 0) state->handle_write(tx_bytes, 4, true);
 				state->transmit_records.push_back({dup_buf, count});
 				int result = 0;
 				uc_reg_write(uc, UC_X86_REG_EAX, &result);
