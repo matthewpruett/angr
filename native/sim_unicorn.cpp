@@ -1108,7 +1108,7 @@ public:
 						instruction_taint_entry.taint_sink_src_map.emplace_back(sink, srcs);
 						// TODO: Should we not compute dependencies to save if sink is an artificial register?
 						auto dependencies_to_save = compute_dependencies_to_save(srcs);
-						instruction_taint_entry.has_memory_read = dependencies_to_save.second;
+						instruction_taint_entry.has_memory_read |= dependencies_to_save.second;
 						instruction_taint_entry.dependencies_to_save.insert(dependencies_to_save.first.begin(), dependencies_to_save.first.end());
 					}
 					if (ite_cond_entity_list.size() > 0) {
@@ -1133,7 +1133,7 @@ public:
 					if (srcs.size() > 0) {
 						instruction_taint_entry.taint_sink_src_map.emplace_back(sink, srcs);
 						auto dependencies_to_save = compute_dependencies_to_save(srcs);
-						instruction_taint_entry.has_memory_read = dependencies_to_save.second;
+						instruction_taint_entry.has_memory_read |= dependencies_to_save.second;
 						instruction_taint_entry.dependencies_to_save.insert(dependencies_to_save.first.begin(), dependencies_to_save.first.end());
 					}
 					if (ite_cond_entity_list.size() > 0) {
@@ -1161,7 +1161,7 @@ public:
 					if (srcs.size() > 0) {
 						instruction_taint_entry.taint_sink_src_map.emplace_back(sink, srcs);
 						auto dependencies_to_save = compute_dependencies_to_save(srcs);
-						instruction_taint_entry.has_memory_read = dependencies_to_save.second;
+						instruction_taint_entry.has_memory_read |= dependencies_to_save.second;
 						instruction_taint_entry.dependencies_to_save.insert(dependencies_to_save.first.begin(), dependencies_to_save.first.end());
 					}
 					if (ite_cond_entity_list.size() > 0) {
@@ -1179,7 +1179,7 @@ public:
 					block_taint_entry.exit_stmt_instr_addr = curr_instr_addr;
 					if (block_taint_entry.exit_stmt_guard_expr_deps.size() > 0) {
 						auto dependencies_to_save = compute_dependencies_to_save(block_taint_entry.exit_stmt_guard_expr_deps);
-						instruction_taint_entry.has_memory_read = dependencies_to_save.second;
+						instruction_taint_entry.has_memory_read |= dependencies_to_save.second;
 						taint_entity_t dummy_sink;
 						dummy_sink.entity_type = TAINT_ENTITY_NONE;
 						dummy_sink.instr_addr = curr_instr_addr;
